@@ -4,7 +4,7 @@ import { Text, View } from 'react-native'
 const PermisionsScreen = () => {
   return (
     <View>
-      <Text>PermisionsScreen</Text>
+       <Text style={{ color: 'white'}}>PermisionsScreen</Text>
     </View>
   )
 }

@@ -4,7 +4,7 @@ import { Text, View } from 'react-native'
 const MapScreen = () => {
   return (
     <View>
-      <Text>MapScreen</Text>
+      <Text style={{ color: 'white'}}>MapScreen</Text>
     </View>
   )
 }
