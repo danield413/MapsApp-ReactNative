@@ -2,7 +2,7 @@ import { LatLng } from '@/infrastructure/interfaces/lat-lng';
 import { useLocationStore } from '@/presentation/store/useLocationStore';
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, ViewProps } from 'react-native';
-import MapView from 'react-native-maps';
+import MapView, { Polyline } from 'react-native-maps';
 import FAB from '../shared/FAB';
 
 interface Props extends ViewProps {
@@ -14,8 +14,9 @@ const CustomMap = ({ showUserLocation = true, initialLocation, ...rest }: Props)
 
     const mapRef = useRef<MapView>(null);
     const [isFollowing, setIsFollowing] = useState(true);
+    const [isShowingPolyline, setIsShowingPolyline] = useState(true);
 
-    const { watchLocation, clearWatchLocation, lastKnownLocation, getLocation } = useLocationStore();
+    const { watchLocation, clearWatchLocation, lastKnownLocation, getLocation, userLocationList } = useLocationStore();
 
     useEffect(() => {
 
@@ -45,7 +46,7 @@ const CustomMap = ({ showUserLocation = true, initialLocation, ...rest }: Props)
         });
     }
 
-    const moveCameraToCurrentLocation = async ()=> {
+    const moveCameraToCurrentLocation = async () => {
         if (!lastKnownLocation) {
             moveCameraToLocation(initialLocation);
         } else {
@@ -74,22 +75,32 @@ const CustomMap = ({ showUserLocation = true, initialLocation, ...rest }: Props)
                 showsUserLocation={showUserLocation}
                 onTouchStart={() => setIsFollowing(false)}
             >
-
+                {
+                    isShowingPolyline && (
+                        <Polyline coordinates={userLocationList} strokeColor="#ff0055" strokeWidth={6} />
+                    )
+                }
 
             </MapView>
 
-            <FAB iconName={ isFollowing ? 'walk-outline': 'accessibility-outline' } onPress={() => {
+            <FAB iconName={isShowingPolyline ? 'eye-outline' : 'eye-off-outline'} onPress={() => {
+                setIsShowingPolyline(!isShowingPolyline);
+            }} style={{
+                bottom: 140,
+                right: 20,
+            }} />
+            <FAB iconName={isFollowing ? 'walk-outline' : 'accessibility-outline'} onPress={() => {
                 setIsFollowing(!isFollowing);
             }} style={{
                 bottom: 80,
                 right: 20,
-            }}/>
+            }} />
             <FAB iconName="compass-outline" onPress={() => {
                 moveCameraToCurrentLocation();
             }} style={{
                 bottom: 20,
                 right: 20,
-            }}/>
+            }} />
         </View>
     )
 }
