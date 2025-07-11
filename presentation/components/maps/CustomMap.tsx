@@ -1,8 +1,9 @@
 import { LatLng } from '@/infrastructure/interfaces/lat-lng';
 import { useLocationStore } from '@/presentation/store/useLocationStore';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, ViewProps } from 'react-native';
 import MapView from 'react-native-maps';
+import FAB from '../shared/FAB';
 
 interface Props extends ViewProps {
     showUserLocation?: boolean;
@@ -12,8 +13,9 @@ interface Props extends ViewProps {
 const CustomMap = ({ showUserLocation = true, initialLocation, ...rest }: Props) => {
 
     const mapRef = useRef<MapView>(null);
+    const [isFollowing, setIsFollowing] = useState(true);
 
-    const { watchLocation, clearWatchLocation, lastKnownLocation } = useLocationStore();
+    const { watchLocation, clearWatchLocation, lastKnownLocation, getLocation } = useLocationStore();
 
     useEffect(() => {
 
@@ -26,10 +28,10 @@ const CustomMap = ({ showUserLocation = true, initialLocation, ...rest }: Props)
     }, []);
 
     useEffect(() => {
-        if (lastKnownLocation) {
+        if (lastKnownLocation && isFollowing) {
             moveCameraToLocation(lastKnownLocation);
         }
-    }, [lastKnownLocation]);
+    }, [lastKnownLocation, isFollowing]);
 
     const moveCameraToLocation = (latlng: LatLng) => {
         if (!mapRef.current) return;
@@ -43,6 +45,21 @@ const CustomMap = ({ showUserLocation = true, initialLocation, ...rest }: Props)
         });
     }
 
+    const moveCameraToCurrentLocation = async ()=> {
+        if (!lastKnownLocation) {
+            moveCameraToLocation(initialLocation);
+        } else {
+            moveCameraToLocation(lastKnownLocation);
+        }
+
+        const location = await getLocation();
+
+        if (!location) return;
+
+        moveCameraToLocation(location);
+
+    };
+
     return (
         <View {...rest}>
             <MapView
@@ -55,10 +72,24 @@ const CustomMap = ({ showUserLocation = true, initialLocation, ...rest }: Props)
                     longitudeDelta: 0.0421,
                 }}
                 showsUserLocation={showUserLocation}
+                onTouchStart={() => setIsFollowing(false)}
             >
 
 
             </MapView>
+
+            <FAB iconName={ isFollowing ? 'walk-outline': 'accessibility-outline' } onPress={() => {
+                setIsFollowing(!isFollowing);
+            }} style={{
+                bottom: 80,
+                right: 20,
+            }}/>
+            <FAB iconName="compass-outline" onPress={() => {
+                moveCameraToCurrentLocation();
+            }} style={{
+                bottom: 20,
+                right: 20,
+            }}/>
         </View>
     )
 }
